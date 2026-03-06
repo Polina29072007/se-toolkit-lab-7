@@ -23,10 +23,11 @@ The database starts empty. We can get anonymized data on task completions in Aut
   - [1.3. Part B: Build the pipeline](#13-part-b-build-the-pipeline)
     - [1.3.1. Read the code stubs](#131-read-the-code-stubs)
     - [1.3.2. Implement the pipeline](#132-implement-the-pipeline)
-    - [1.3.3. Deploy and test](#133-deploy-and-test)
-    - [1.3.4. Verify the data](#134-verify-the-data)
-    - [1.3.5. Test idempotency](#135-test-idempotency)
-    - [1.3.6. Commit your work](#136-commit-your-work)
+    - [1.3.3. Run and test locally](#133-run-and-test-locally)
+    - [1.3.4. Verify the data locally](#134-verify-the-data-locally)
+    - [1.3.5. Test idempotency locally](#135-test-idempotency-locally)
+    - [1.3.6. Commit and push your work](#136-commit-and-push-your-work)
+    - [1.3.7. Update and test on the VM](#137-update-and-test-on-the-vm)
   - [1.4. Finish the task](#14-finish-the-task)
   - [1.5. Check the task using the autochecker](#15-check-the-task-using-the-autochecker)
 - [2. Acceptance criteria](#2-acceptance-criteria)
@@ -155,10 +156,11 @@ The API has HTTP Basic Auth, we'll use `curl` to send requests.
 <!-- no toc -->
 - [1.3.1. Read the code stubs](#131-read-the-code-stubs)
 - [1.3.2. Implement the pipeline](#132-implement-the-pipeline)
-- [1.3.3. Deploy and test](#133-deploy-and-test)
-- [1.3.4. Verify the data](#134-verify-the-data)
-- [1.3.5. Test idempotency](#135-test-idempotency)
-- [1.3.6. Commit your work](#136-commit-your-work)
+- [1.3.3. Run and test locally](#133-run-and-test-locally)
+- [1.3.4. Verify the data locally](#134-verify-the-data-locally)
+- [1.3.5. Test idempotency locally](#135-test-idempotency-locally)
+- [1.3.6. Commit and push your work](#136-commit-and-push-your-work)
+- [1.3.7. Update and test on the VM](#137-update-and-test-on-the-vm)
 
 #### 1.3.1. Read the code stubs
 
@@ -213,26 +215,17 @@ The code stubs in `backend/app/etl.py` contain detailed TODOs.
 > - "Call out assumptions and edge cases."
 > - "After coding, summarize why this implementation is correct."
 
-#### 1.3.3. Deploy and test
+#### 1.3.3. Run and test locally
 
-1. Push your changes and deploy to the VM.
-
-   On your VM:
+1. Deploy your changes locally:
 
    ```terminal
-   cd se-toolkit-lab-5
-   git fetch origin && git checkout <task-branch> && git pull
    docker compose --env-file .env.docker.secret up --build -d
    ```
 
-   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
+2. Open [`Swagger UI`](../../../wiki/swagger.md#what-is-swagger-ui) at `http://localhost:<caddy-port>/docs`.
 
-2. Open [`Swagger UI`](../../../wiki/swagger.md#what-is-swagger-ui) at `http://<your-vm-ip-address>:<caddy-port>/docs`.
-
-   Replace:
-
-   - [`<your-vm-ip-address>`](../../../wiki/vm.md#your-vm-ip-address)
-   - [`<caddy-port>`](../../../wiki/caddy.md#caddy-port)
+   Replace [`<caddy-port>`](../../../wiki/caddy.md#caddy-port).
 
 3. [Authorize](../../../wiki/swagger.md#authorize-in-swagger-ui) with your [`API_KEY`](../../../wiki/dotenv-docker-secret.md#api_key).
 
@@ -271,9 +264,9 @@ The code stubs in `backend/app/etl.py` contain detailed TODOs.
 
    </details>
 
-#### 1.3.4. Verify the data
+#### 1.3.4. Verify the data locally
 
-1. In `Swagger UI`, try `GET /items/`.
+1. In local `Swagger UI`, try `GET /items/`.
 
    You should see a list of lab and task items created by the pipeline.
 
@@ -287,9 +280,9 @@ The code stubs in `backend/app/etl.py` contain detailed TODOs.
 
 4. (Optional) Open [`pgAdmin`](../../../wiki/pgadmin.md#what-is-pgadmin) and inspect the tables directly.
 
-#### 1.3.5. Test idempotency
+#### 1.3.5. Test idempotency locally
 
-1. In `Swagger UI`, run `POST /pipeline/sync` again.
+1. In local `Swagger UI`, run `POST /pipeline/sync` again.
 
    You should see:
 
@@ -306,7 +299,7 @@ The code stubs in `backend/app/etl.py` contain detailed TODOs.
 > Idempotent upserts are important for production pipelines.
 > If the pipeline is interrupted, you can safely re-run it without creating duplicates.
 
-#### 1.3.6. Commit your work
+#### 1.3.6. Commit and push your work
 
 1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
 
@@ -315,6 +308,37 @@ The code stubs in `backend/app/etl.py` contain detailed TODOs.
    ```text
    feat: implement ETL pipeline for autochecker data
    ```
+
+2. Push your task branch:
+
+   ```terminal
+   git push -u origin <task-branch>
+   ```
+
+   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
+
+#### 1.3.7. Update and test on the VM
+
+1. On your VM, pull your branch and restart the services:
+
+   ```terminal
+   cd se-toolkit-lab-5
+   git fetch origin
+   git checkout <task-branch>
+   git pull origin <task-branch>
+   docker compose --env-file .env.docker.secret up --build -d
+   ```
+
+2. Open [`Swagger UI`](../../../wiki/swagger.md#what-is-swagger-ui) at `http://<your-vm-ip-address>:<caddy-port>/docs`.
+
+   Replace:
+
+   - [`<your-vm-ip-address>`](../../../wiki/vm.md#your-vm-ip-address)
+   - [`<caddy-port>`](../../../wiki/caddy.md#caddy-port)
+
+3. [Authorize](../../../wiki/swagger.md#authorize-in-swagger-ui) with your [`API_KEY`](../../../wiki/dotenv-docker-secret.md#api_key), then run `POST /pipeline/sync` once.
+
+   You should get `200` with `new_records` and `total_records`.
 
 ### 1.4. Finish the task
 
