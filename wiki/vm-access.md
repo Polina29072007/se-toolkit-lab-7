@@ -17,6 +17,7 @@
   - [Create the non-root user `<user>` (REMOTE)](#create-the-non-root-user-user-remote)
     - [Add the non-root user `<user>` (REMOTE)](#add-the-non-root-user-user-remote)
     - [Set the password for the user `<user>` (REMOTE)](#set-the-password-for-the-user-user-remote)
+    - [Type the password for the user `<user>` (REMOTE)](#type-the-password-for-the-user-user-remote)
     - [Provide other information about the user `<user>` (REMOTE)](#provide-other-information-about-the-user-user-remote)
     - [Add the user `<user>` to the group `sudo` (REMOTE)](#add-the-user-user-to-the-group-sudo-remote)
   - [Set up the `SSH` key authentication for the user `<user>` (REMOTE)](#set-up-the-ssh-key-authentication-for-the-user-user-remote)
@@ -324,7 +325,7 @@ Complete these steps:
 
 #### Set the password for the user `<user>` (REMOTE)
 
-1. When prompted for a password (`New password`, `Retype new password`):
+1. When prompted for a password (`New password`):
 
    1. Save it in a password manager to not lose it.
 
@@ -333,6 +334,20 @@ Complete these steps:
    > 🟦 **Note**
    >
    > The shell won't show what you type for security reasons.
+
+#### Type the password for the user `<user>` (REMOTE)
+
+1. When prompted for a password:
+
+   1. Type the password for the user `<user>`.
+
+      See [Set the password for the user `<user>` (REMOTE)](#set-the-password-for-the-user-user-remote).
+
+      > 🟦 **Note**
+      >
+      > The [shell](./shell.md#what-is-a-shell) won't show what you type.
+
+   2. Press `Enter`.
 
 #### Provide other information about the user `<user>` (REMOTE)
 
@@ -582,17 +597,7 @@ Complete these steps:
    sudo nano /etc/ssh/sshd_config
    ```
 
-3. When prompted for a password:
-
-   1. Type the password for the user `<user>`.
-
-      See [Set the password for the user `<user>` (REMOTE)](#set-the-password-for-the-user-user-remote).
-
-      > 🟦 **Note**
-      >
-      > The shell won't show what you type.
-
-   2. Press `Enter`.
+3. [Type the password for the user `<user>`](#type-the-password-for-the-user-user-remote).
 
 4. Find the line `PermitRootLogin yes` and set it to:
 
@@ -618,19 +623,7 @@ Complete these steps:
    sudo sshd -t
    ```
 
-2. When prompted for a password:
-
-   1. Type the password for the user `<user>`.
-
-      See [Set the password for the user `<user>` (REMOTE)](#set-the-password-for-the-user-user-remote).
-
-      > 🟦 **Note**
-      >
-      > The shell won't show what you type.
-
-   2. Press `Enter`.
-
-   The shell won't show what you type.
+2. [Type the password for the user `<user>`](#type-the-password-for-the-user-user-remote).
 
 3. If the command prints no output, the config is valid.
 
