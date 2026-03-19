@@ -22,9 +22,14 @@
 
 ## LMS API key
 
-The [API key](./web-api.md#api-key) that is used to authorize requests to the [LMS API](#about-the-lms-api).
+The [API key](./web-api.md#api-key) that is used to authorize requests to the [LMS API](#about-the-lms-api) in:
+
+- The [`Swagger UI`](./swagger.md#authorize-in-swagger-ui)
+- The [LMS frontend](./lms-frontend.md#authentication)
 
 You can use almost any (alphanumeric) string as the LMS API key.
+
+You store the key in [`LMS_API_KEY`](./dotenv-docker-secret.md#lms_api_key) in [`.env.docker.secret`](./dotenv-docker-secret.md#what-is-envdockersecret).
 
 ### `<lms-api-key>` placeholder
 
