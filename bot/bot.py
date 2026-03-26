@@ -1,14 +1,13 @@
-# bot/bot.py
 import asyncio
 import logging
+import sys
 
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 
 from config import load_config
 from services.backend import BackendClient, BackendError
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +26,18 @@ def create_bot_and_backend():
 
 async def cmd_start(message: Message):
     await message.answer("Привет! Я бот для работы с лабораторными.")
+
+
+async def cmd_help(message: Message):
+    text = (
+        "Доступные команды:\n"
+        "/start – приветственное сообщение\n"
+        "/help – список команд\n"
+        "/health – проверка связи с backend\n"
+        "/labs – список лабораторных\n"
+        "/scores <lab-id> – статистика по лабе, например: /scores lab-04"
+    )
+    await message.answer(text)
 
 
 async def cmd_health(message: Message, backend: BackendClient):
@@ -71,6 +82,7 @@ async def cmd_scores(message: Message, backend: BackendClient):
 
 def setup_handlers(dp: Dispatcher, backend: BackendClient):
     dp.message.register(cmd_start, Command("start"))
+    dp.message.register(cmd_help, Command("help"))
     dp.message.register(lambda m: cmd_health(m, backend), Command("health"))
     dp.message.register(lambda m: cmd_labs(m, backend), Command("labs"))
     dp.message.register(lambda m: cmd_scores(m, backend), Command("scores"))
@@ -83,12 +95,28 @@ async def main():
     await dp.start_polling(bot)
 
 
+async def main_test():
+    if len(sys.argv) < 3:
+        raise RuntimeError('Usage: uv run bot.py --test "/command"')
+
+    command = sys.argv[2]
+    cfg = load_config()
+    _ = BackendClient(cfg)
+
+    if command == "/start":
+        print("Привет! Я бот для работы с лабораторными.")
+    elif command == "/help":
+        print("Доступные команды: /start, /help, /health, /labs, /scores <lab-id>")
+    else:
+        print(f"Неизвестная команда: {command}. Попробуйте /help.")
+
+
 async def main_test_start():
-    bot, backend = create_bot_and_backend()
-    dp = Dispatcher()
-    setup_handlers(dp, backend)
-    print("Bot test /start: OK (handler is wired).")
+    await main_test()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    if len(sys.argv) >= 2 and sys.argv[1] == "--test":
+        asyncio.run(main_test_start())
+    else:
+        asyncio.run(main())
