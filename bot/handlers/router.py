@@ -1,24 +1,25 @@
 from typing import Any, Dict
-from . import base
+from .start import handle_start
+from .help import handle_help
+from .health import handle_health
+from .labs import handle_labs
+from .scores import handle_scores
 
 
-def route_command(raw: str, context: Dict[str, Any] | None = None) -> str:
-    text = raw.strip()
-    if not text:
-        return base.handle_fallback(text, context)
+def route_command(text: str, context: Dict[str, Any]) -> str:
+    text = text.strip()
+    if not text.startswith("/"):
+        return "Unknown command. Use /help."
 
     if text.startswith("/start"):
-        return base.handle_start(context)
+        return handle_start(context)
     if text.startswith("/help"):
-        return base.handle_help(context)
+        return handle_help(context)
     if text.startswith("/health"):
-        return base.handle_health(context)
+        return handle_health(context)
     if text.startswith("/labs"):
-        return base.handle_labs(context)
+        return handle_labs(context)
     if text.startswith("/scores"):
-        parts = text.split(maxsplit=1)
-        arg = parts[1] if len(parts) > 1 else None
-        return base.handle_scores(arg, context)
+        return handle_scores(text, context)
 
-    # сюда попадёт свободный текст и неизвестные команды
-    return base.handle_fallback(text, context)
+    return "Unknown command. Use /help."

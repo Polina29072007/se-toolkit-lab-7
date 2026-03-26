@@ -1,6 +1,6 @@
+# bot/config.py
 from pathlib import Path
-from dotenv import dotenv_values  # из python-dotenv
-
+from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
