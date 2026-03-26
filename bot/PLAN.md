@@ -1,0 +1,7 @@
+# Bot development plan
+
+In this lab I want to build a Telegram helper bot with a clear, testable architecture. The main idea is to keep command handlers independent from Telegram and use a `--test` mode for local verification. This should make it easier to add new commands, test behavior without network access, and debug integration with the existing LMS backend and LLM API.
+
+First, I will scaffold the `bot/` project: create `bot.py` as the entry point, a `handlers/` package for command logic, a `services/` package for talking to the backend and LLM, a `config.py` module for loading environment variables from `.env.bot.secret`, and a separate `pyproject.toml` managed by `uv`. The `--test` mode in `bot.py` will parse a text command from the CLI, route it to the appropriate handler, print the response to stdout, and exit with code 0.
+
+Next, I plan to implement placeholder handlers for `/start`, `/help`, `/health`, and basic lab queries. Each handler will be a pure function that receives configuration and input text and returns a response string. Later tasks will extend these handlers to call the backend (using `LMS_API_BASE_URL` and `LMS_API_KEY`) and the LLM (using `LLM_API_KEY`, `LLM_API_BASE_URL`, and `LLM_API_MODEL`). Finally, after verifying behavior in `--test` mode, I will wire the same handlers into a Telegram bot implementation so that real users in Telegram see exactly the same logic as in the tests.
