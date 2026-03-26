@@ -1,21 +1,20 @@
+# bot/handlers/labs.py
 from typing import Any, Dict
 from services.backend import BackendClient, BackendError
 
 
 def handle_labs(context: Dict[str, Any]) -> str:
-    config = context["config"]
-    client = BackendClient(config)
+    backend: BackendClient = context["backend"]
+
     try:
-        items = client.get_items()
+        items = backend.get_items()
+        # фильтрация только лаб, если в items есть тип/категория — подстрой под свой формат
+        labs = [item for item in items if item.get("type") == "lab"] or items
+
+        if not labs:
+            return "No labs available yet."
+
+        lines = [f"- {lab['title']}" for lab in labs]
+        return "Available labs:\n" + "\n".join(lines)
     except BackendError as e:
         return f"Backend error: {e}"
-
-    labs = [i for i in items if i.get("type") == "lab"]
-    if not labs:
-        return "No labs found in backend."
-
-    lines = ["Available labs:"]
-    for lab in labs:
-        name = lab.get("name") or lab.get("title") or "Lab"
-        lines.append(f"- {name}")
-    return "\n".join(lines)
