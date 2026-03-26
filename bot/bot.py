@@ -7,6 +7,7 @@ from aiogram.types import Message
 
 from config import load_config
 from services.backend import BackendClient
+from services.llm_client import LlmClient
 from handlers.router import route_command
 
 logging.basicConfig(level=logging.INFO)
@@ -21,23 +22,30 @@ def create_bot_and_backend():
 
     bot = Bot(token=bot_token)
     backend = BackendClient(cfg)
-    return bot, backend
+
+    llm = LlmClient(
+        base_url=cfg.get("LLM_API_BASE_URL", ""),
+        api_key=cfg.get("LLM_API_KEY", ""),
+        model=cfg.get("LLM_API_MODEL", ""),
+    )
+
+    return bot, backend, llm
 
 
-async def on_message(message: Message, backend: BackendClient):
-    context = {"backend": backend}
+async def on_message(message: Message, backend: BackendClient, llm: LlmClient):
+    context = {"backend": backend, "llm": llm}
     reply = route_command(message.text or "", context)
     await message.answer(reply)
 
 
-def setup_handlers(dp: Dispatcher, backend: BackendClient):
-    dp.message.register(lambda m: on_message(m, backend))
+def setup_handlers(dp: Dispatcher, backend: BackendClient, llm: LlmClient):
+    dp.message.register(lambda m: on_message(m, backend, llm))
 
 
 async def main():
-    bot, backend = create_bot_and_backend()
+    bot, backend, llm = create_bot_and_backend()
     dp = Dispatcher()
-    setup_handlers(dp, backend)
+    setup_handlers(dp, backend, llm)
     await dp.start_polling(bot)
 
 
@@ -45,13 +53,18 @@ async def main():
 
 async def main_test():
     if len(sys.argv) < 3:
-        raise RuntimeError('Usage: uv run bot.py --test "/command"')
+        raise RuntimeError('Usage: uv run bot.py --test "/command or text"')
 
     command = sys.argv[2]
     cfg = load_config()
     backend = BackendClient(cfg)
+    llm = LlmClient(
+        base_url=cfg.get("LLM_API_BASE_URL", ""),
+        api_key=cfg.get("LLM_API_KEY", ""),
+        model=cfg.get("LLM_API_MODEL", ""),
+    )
 
-    context = {"backend": backend}
+    context = {"backend": backend, "llm": llm}
     reply = route_command(command, context)
     print(reply)
 

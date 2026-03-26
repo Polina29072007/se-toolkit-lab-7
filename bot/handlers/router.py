@@ -6,12 +6,17 @@ from .help import handle_help
 from .health import handle_health
 from .labs import handle_labs
 from .scores import handle_scores
+from .intent import handle_intent
 
 
 def route_command(text: str, context: Dict[str, Any]) -> str:
     text = text.strip()
-    if not text.startswith("/"):
+    if not text:
         return "Unknown command. Use /help."
+
+    # Natural-language: не начинается с / — отправляем в intent-роутер
+    if not text.startswith("/"):
+        return handle_intent(text, context)
 
     if text.startswith("/start"):
         return handle_start(context)

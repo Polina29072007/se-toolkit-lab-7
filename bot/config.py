@@ -18,4 +18,6 @@ def load_config() -> dict:
         "LMS_API_BASE_URL": cfg.get("LMS_API_BASE_URL", ""),
         "LMS_API_KEY": cfg.get("LMS_API_KEY", ""),
         "LLM_API_KEY": cfg.get("LLM_API_KEY", ""),
+        "LLM_API_BASE_URL": cfg.get("LLM_API_BASE_URL", ""),
+        "LLM_API_MODEL": cfg.get("LLM_API_MODEL", ""),
     }
