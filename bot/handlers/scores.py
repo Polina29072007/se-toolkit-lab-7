@@ -1,15 +1,16 @@
 import httpx
 
-def handle_scores(text: str, context: BotContext) -> str:
+def handle_scores(text: str, context: dict) -> str:
     parts = text.split(maxsplit=1)
     if len(parts) != 2:
         return "Usage: /scores <lab-id>"
 
     lab_id = parts[1]
+    backend_url = context["backend_url"]  # вот так достаём из dict
 
     try:
         resp = httpx.get(
-            f"{context.backend_url}/analytics/pass-rates",
+            f"{backend_url}/analytics/pass-rates",
             params={"lab": lab_id},
             timeout=5.0,
         )
