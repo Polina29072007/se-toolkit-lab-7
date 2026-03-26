@@ -1,27 +1,37 @@
-# bot/handlers/scores.py
-from typing import Any, Dict
-from services.backend import BackendClient, BackendError
+import httpx
 
-
-def handle_scores(text: str, context: Dict[str, Any]) -> str:
-    backend: BackendClient = context["backend"]
-
+def handle_scores(text: str, context: BotContext) -> str:
     parts = text.split(maxsplit=1)
-    if len(parts) < 2:
-        return "Usage: /scores <lab-id>, e.g. /scores lab-04"
+    if len(parts) != 2:
+        return "Usage: /scores <lab-id>"
 
-    lab_id = parts[1].strip()
+    lab_id = parts[1]
 
     try:
-        stats = backend.get_pass_rates(lab_id)
-        if not stats:
-            return f"No data for lab {lab_id}."
+        resp = httpx.get(
+            f"{context.backend_url}/analytics/pass-rates",
+            params={"lab": lab_id},
+            timeout=5.0,
+        )
+    except httpx.RequestError:
+        return "Backend is unavailable. Please try again later."
 
-        # предполагаем формат: [{"task": "...", "pass_rate": 92.1, "attempts": 187}, ...]
-        lines = [
-            f"- {row['task']}: {row['pass_rate']}% ({row['attempts']} attempts)"
-            for row in stats
-        ]
-        return f"Pass rates for {lab_id}:\n" + "\n".join(lines)
-    except BackendError as e:
-        return f"Backend error: {e}"
+    if resp.status_code != 200:
+        return f"Failed to fetch scores for {lab_id}: {resp.text}"
+
+    data = resp.json()
+
+    # если бэкенд вернул ошибку в JSON
+    if isinstance(data, dict) and "detail" in data:
+        return f"Failed to fetch scores for {lab_id}: {data['detail']}"
+
+    # ожидаем список с полями task, pass_rate, attempts (подставь реальные ключи, если в условии они другие)
+    lines = [f"Pass rates for {lab_id}:"]
+    for row in data:
+        task = row.get("task", "unknown task")
+        # если бэкенд всё-таки присылает поле в другом формате — пока выводим как есть
+        pass_rate = row.get("pass_rate") or row.get("passRate") or "n/a"
+        attempts = row.get("attempts", "n/a")
+        lines.append(f"- {task}: {pass_rate}% ({attempts} attempts)")
+
+    return "\n".join(lines)
