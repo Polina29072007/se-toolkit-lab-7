@@ -1,36 +1,28 @@
-import httpx
+# bot/handlers/scores.py
+from typing import Any, Dict
+from services.backend import BackendClient, BackendError
 
-def handle_scores(text: str, context: dict) -> str:
+
+def handle_scores(text: str, context: Dict[str, Any]) -> str:
     parts = text.split(maxsplit=1)
     if len(parts) != 2:
         return "Usage: /scores <lab-id>"
 
     lab_id = parts[1]
-    backend_url = context["backend_url"]  # вот так достаём из dict
+    backend: BackendClient = context["backend"]
 
     try:
-        resp = httpx.get(
-            f"{backend_url}/analytics/pass-rates",
-            params={"lab": lab_id},
-            timeout=5.0,
-        )
-    except httpx.RequestError:
-        return "Backend is unavailable. Please try again later."
+        # предполагаем, что в BackendClient есть метод для pass-rates
+        scores = backend.get_pass_rates(lab_id)
+    except BackendError as e:
+        return f"Backend error: {e}"
 
-    if resp.status_code != 200:
-        return f"Failed to fetch scores for {lab_id}: {resp.text}"
+    if not scores:
+        return f"No scores available for {lab_id}."
 
-    data = resp.json()
-
-    # если бэкенд вернул ошибку в JSON
-    if isinstance(data, dict) and "detail" in data:
-        return f"Failed to fetch scores for {lab_id}: {data['detail']}"
-
-    # ожидаем список с полями task, pass_rate, attempts (подставь реальные ключи, если в условии они другие)
     lines = [f"Pass rates for {lab_id}:"]
-    for row in data:
+    for row in scores:
         task = row.get("task", "unknown task")
-        # если бэкенд всё-таки присылает поле в другом формате — пока выводим как есть
         pass_rate = row.get("pass_rate") or row.get("passRate") or "n/a"
         attempts = row.get("attempts", "n/a")
         lines.append(f"- {task}: {pass_rate}% ({attempts} attempts)")
