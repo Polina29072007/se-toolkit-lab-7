@@ -1,30 +1,27 @@
+# bot/handlers/scores.py
 from typing import Any, Dict
 from services.backend import BackendClient, BackendError
 
 
 def handle_scores(text: str, context: Dict[str, Any]) -> str:
-    parts = text.strip().split(maxsplit=1)
-    if len(parts) == 1:
+    backend: BackendClient = context["backend"]
+
+    parts = text.split(maxsplit=1)
+    if len(parts) < 2:
         return "Usage: /scores <lab-id>, e.g. /scores lab-04"
 
-    lab = parts[1].strip()
-    config = context["config"]
-    client = BackendClient(config)
+    lab_id = parts[1].strip()
 
     try:
-        data = client.get_pass_rates(lab)
+        stats = backend.get_pass_rates(lab_id)
+        if not stats:
+            return f"No data for lab {lab_id}."
+
+        # предполагаем формат: [{"task": "...", "pass_rate": 92.1, "attempts": 187}, ...]
+        lines = [
+            f"- {row['task']}: {row['pass_rate']}% ({row['attempts']} attempts)"
+            for row in stats
+        ]
+        return f"Pass rates for {lab_id}:\n" + "\n".join(lines)
     except BackendError as e:
         return f"Backend error: {e}"
-
-    if not data:
-        return f"No scores found for {lab}."
-
-    lines = [f"Pass rates for {lab}:"]
-    for task in data:
-        name = task.get("task_name") or task.get("name") or "Task"
-        rate = task.get("pass_rate") or task.get("passRate")
-        attempts = task.get("attempts") or task.get("total_attempts")
-        if rate is None or attempts is None:
-            continue
-        lines.append(f"- {name}: {rate:.1f}% ({attempts} attempts)")
-    return "\n".join(lines)
