@@ -41,4 +41,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())cd ~/se-toolkit-lab-7
+    raise SystemExit(main())
